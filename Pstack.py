@@ -11,14 +11,14 @@ class Pstack:
     def __init__(self):
         self.items = []
 
-    def push(self.item):
+    def push(self, item):
 
         self.items.append(item)
 
     def pop(self):
 
         if self.items:
-            return self.items.pop(item)
+            return self.items.pop()
 
 
     def peek(self):
@@ -32,4 +32,4 @@ class Pstack:
 
     def isEmpty(self):
 
-        return self.items = []
+        return self.items == []
