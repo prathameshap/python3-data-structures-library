@@ -1,4 +1,4 @@
-#!/etc/bin/env python3
+#!/usr/bin/env python3
 """Filename: Pstack"""
 
 #Auther Name: Prathamesh Pawar
