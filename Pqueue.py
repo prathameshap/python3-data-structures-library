@@ -15,7 +15,7 @@ class Queue:
 
     def dequeue(self):
         if self.items:
-            return self.items.pop(item)
+            return self.items.pop()
         return None
 
     def peek(self):
