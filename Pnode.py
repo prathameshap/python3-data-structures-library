@@ -15,6 +15,9 @@ class Node:
         self.next = None
         self.prev = None
 
+    def __repr__(self):
+        return "Node object: data={}".format(self.data)
+
     def getData(self):
         
         return self.data
