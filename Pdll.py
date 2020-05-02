@@ -4,7 +4,15 @@
 #Author name: Prathamesh Pawar
 #       email: prathameshpawar1301@gmail.com
 
-"""Importing Node class for linked list"""
+##################################################################################################################
+# supporting meathods
+##  isEmpty
+##  size
+##  search
+##  addFront
+##  remove
+##################################################################################################################
+"""Importing Node class from Pnode file"""
 from Pnode import *
 
 class DLL:
