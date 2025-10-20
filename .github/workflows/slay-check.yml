@@ -10,7 +10,7 @@ jobs:
     if: github.event.pull_request.draft == false
     
     steps:
-      - name: prathameshap/slay-check
+      - name: Checkout your repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -18,7 +18,7 @@ jobs:
       - name: Checkout Slay Check (private)
         uses: actions/checkout@v4
         with:
-          repository: YOUR_USERNAME/slay-check  # Your private repo
+          repository: prathameshap/slay-check  # Your private repo
           path: slay-check
           token: ${{ secrets.SLAY_CHECK_TOKEN }}  # Your PAT
           
