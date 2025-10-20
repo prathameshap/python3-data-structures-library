@@ -1,7 +1,6 @@
 name: Slay Check - AI Code Review
 on:
   pull_request:
-    branches: [ master ]
     types: [opened, synchronize, reopened]
 
 jobs:
@@ -10,28 +9,19 @@ jobs:
     if: github.event.pull_request.draft == false
     
     steps:
-      - name: Checkout your repository
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           
-      - name: Checkout Slay Check (private)
-        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          repository: prathameshap/slay-check  # Your private repo
-          path: slay-check
-          token: ${{ secrets.SLAY_CHECK_TOKEN }}  # Your PAT
+          python-version: '3.11'
           
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.21'
-          
-      - name: Build Slay Check
+      - name: Install Slay Check
         run: |
-          cd slay-check
-          go mod download
-          go build -o ../slay-check ./cmd/github-action
+          pip install git+https://github.com/prathameshap/slay-check.git
           
       - name: Run Slay Check
         env:
@@ -40,16 +30,4 @@ jobs:
           SLAY_CHECK_AI_TOKEN: ${{ secrets.SLAY_CHECK_AI_TOKEN }}
           SLAY_CHECK_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ./slay-check
-          
-      - name: Comment on failure
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '**Slay Check Review Failed**\n\nPlease check the [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.'
-            })
+          python -m slay_check.github_action
