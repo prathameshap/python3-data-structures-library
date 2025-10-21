@@ -58,17 +58,17 @@ if (-not $pythonCmd) {
 }
 
 $pythonVersion = & $pythonCmd --version
-Write-Host "✓ Python 3 found: $pythonVersion" -ForegroundColor Green
+Write-Host "Python 3 found: $pythonVersion" -ForegroundColor Green
 
 # Install pre-commit
 if (Get-Command pre-commit -ErrorAction SilentlyContinue) {
-    Write-Host "✓ pre-commit already installed" -ForegroundColor Green
+    Write-Host "pre-commit already installed" -ForegroundColor Green
 } else {
     Write-Host ""
     Write-Host " Installing pre-commit framework..." -ForegroundColor Yellow
     try {
         & $pythonCmd -m pip install --user pre-commit 2>&1 | Out-Null
-        Write-Host "✓ pre-commit installed" -ForegroundColor Green
+        Write-Host "pre-commit installed" -ForegroundColor Green
     } catch {
         Write-Host " WARNING: Could not install pre-commit" -ForegroundColor Yellow
     }
@@ -85,11 +85,20 @@ Write-Host " SUCCESS: Configuration copied" -ForegroundColor Green
 # Install hooks
 Set-Location $repoRoot
 Write-Host ""
-Write-Host "🔗 Installing Git hooks..." -ForegroundColor Yellow
+Write-Host "Installing Git hooks..." -ForegroundColor Yellow
 try {
-    pre-commit install 2>&1 | Out-Null
-    pre-commit install --hook-type commit-msg 2>&1 | Out-Null
-    pre-commit install --hook-type pre-push 2>&1 | Out-Null
+    # Try to find pre-commit in PATH or use python -m pre_commit
+    $preCommitCmd = $null
+    if (Get-Command pre-commit -ErrorAction SilentlyContinue) {
+        $preCommitCmd = "pre-commit"
+    } else {
+        $preCommitCmd = "$pythonCmd -m pre_commit"
+    }
+    
+    # Install hooks using the found command
+    Invoke-Expression "$preCommitCmd install" 2>&1 | Out-Null
+    Invoke-Expression "$preCommitCmd install --hook-type commit-msg" 2>&1 | Out-Null
+    Invoke-Expression "$preCommitCmd install --hook-type pre-push" 2>&1 | Out-Null
     Write-Host " SUCCESS: Hooks installed" -ForegroundColor Green
     
     Write-Host ""
@@ -98,9 +107,9 @@ try {
     Write-Host "================================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "Hooks installed:" -ForegroundColor Cyan
-    Write-Host "  • commit-msg : Validates commit message format"
-    Write-Host "  • pre-commit : Validates Logic App workflows"
-    Write-Host "  • pre-push   : Validates branch naming"
+    Write-Host "  commit-msg : Validates commit message format"
+    Write-Host "  pre-commit : Validates Logic App workflows"
+    Write-Host "  pre-push   : Validates branch naming"
     Write-Host ""
     Write-Host " INFO: Hooks only run on dev/feature branches, NOT on release" -ForegroundColor Cyan
     Write-Host ""
