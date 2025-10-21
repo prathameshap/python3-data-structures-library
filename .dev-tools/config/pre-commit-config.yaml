@@ -1,0 +1,27 @@
+# Pre-commit configuration for Logic Apps
+# Managed by DevOps - do not modify
+
+repos:
+  - repo: local
+    hooks:
+      - id: validate-commit-msg
+        name: Validate Commit Message
+        entry: python .dev-tools/hooks/validate_commit_msg.py
+        language: python
+        stages: [commit-msg]
+        always_run: true
+        
+      - id: validate-branch-name
+        name: Validate Branch Name
+        entry: python .dev-tools/hooks/validate_branch_name.py
+        language: python
+        stages: [pre-push]
+        always_run: true
+        
+      - id: validate-logic-apps
+        name: Validate Logic App Workflows
+        entry: python .dev-tools/hooks/validate_logic_app.py
+        language: python
+        stages: [pre-commit]
+        pass_filenames: false
+        files: '\.(json)$'

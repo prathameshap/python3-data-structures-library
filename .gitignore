@@ -1,0 +1,33 @@
+# Development tools - managed by DevOps
+# Note: .dev-tools is committed but should not be modified by developers
+.pre-commit-config.yaml
+
+# Development framework - exclude from commits but keep in repo
+#.dev-tools/
+
+# Git hooks are local
+.git/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.dev-tools/hooks/__pycache__/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+target/
+*.class
+*.jar
+*.war
+
+# Logs
+*.log
