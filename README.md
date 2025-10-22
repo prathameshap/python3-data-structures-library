@@ -2,7 +2,7 @@
 
 [Brief description of what this project does]
 
-Example: 
+Example:
 > Event-driven microservice for loyalty partner integrations. Processes account events via Kafka and orchestrates workflows with external partner APIs using Azure Logic Apps and Functions.
 
 ---
@@ -24,7 +24,7 @@ Example:
 - Azurite (local storage emulator)
 
 **For Java Function Apps:**
-- Java 11+ (JDK) 
+- Java 11+ (JDK)
 - Maven 3.6+
 - Azure Functions Core Tools v3 (optional) //to run local emulator
 
@@ -263,7 +263,7 @@ feature/ICOE-123_test          (use hyphens, not underscores)
 
 ## Project Structure
 
-### Logic Apps Project Structure: 
+### Logic Apps Project Structure:
 https://docs.microsoft.com/en-us/azure/logic-apps/create-single-tenant-workflows-visual-studio-code#project-structure
 ```
 your-logic-app-repo/
@@ -342,6 +342,40 @@ your-csharp-function-repo/
 ---
 
 ## Technology Stack
+
+## Code Quality Standards
+
+This project uses automated code quality checks to maintain consistency and best practices.
+
+### Checkstyle Integration
+
+**For Java Projects:**
+- Runs automatically on every commit
+- Validates code against team standards
+- Enforces JavaDoc, naming conventions, code structure
+- Provides immediate feedback
+
+**Quick Check:**
+```bash
+# Run Checkstyle before committing
+mvn checkstyle:check
+
+# Generate detailed report
+mvn checkstyle:checkstyle
+# View: target/site/checkstyle.html
+```
+
+**Common Issues:**
+- Missing JavaDoc on public methods
+- Incorrect naming conventions
+- Star imports (import java.util.*)
+- Method too long (>150 lines)
+
+**See:** [Code Standards.docx](Code%20Standards.docx) for detailed standards
+
+**Configuration:** `checkstyle.xml` in repository root
+
+**Skip (Emergency):** `mvn clean package -DskipCheckstyle=true`
 
 **Common:**
 - **Cloud:** Azure (Logic Apps, Functions, Key Vault, Service Bus, Storage)
@@ -572,6 +606,8 @@ mvn azure-functions:deploy
 All PRs are automatically validated for:
 - Commit message format
 - Branch naming convention
+- Code quality (Checkstyle for Java, basic checks for C#)
+- Workflow validation (Logic Apps)
 - Build succeeds
 - Tests pass
 - Code quality checks (Checkstyle for Java, StyleCop for C#)

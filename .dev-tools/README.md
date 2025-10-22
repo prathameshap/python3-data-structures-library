@@ -1,10 +1,24 @@
-# Development Tools
+# Development Tools Framework
 
 **DO NOT MODIFY FILES IN THIS DIRECTORY** - Managed by DevOps
 
+## Overview
+
+This development framework provides automated validation for:
+- Git commit message format
+- Branch naming conventions  
+- Code quality checks (Checkstyle for Java)
+- Logic App workflow validation
+
 ## Quick Setup
 
-### Step 1: Install Git Hooks
+### Prerequisites
+- Git
+- Python 3.8+
+- For Java projects: Maven 3.6+
+- For Logic Apps: Node.js 14+ LTS, .NET Core 3.1+ SDK
+
+### Installation
 
 **Windows:**
 ```cmd
@@ -17,74 +31,59 @@ chmod +x .dev-tools/setup/setup-hooks.sh
 .dev-tools/setup/setup-hooks.sh
 ```
 
-### Step 2: Install Logic Apps Tools (Optional)
-
-**Windows:**
-```powershell
-.\.dev-tools\setup\setup-logic-apps.ps1
-```
-
-**Mac/Linux:**
+**Optional - Logic Apps Tools:**
 ```bash
+# Windows
+.\.dev-tools\setup\setup-logic-apps.ps1
+
+# Mac/Linux  
 chmod +x .dev-tools/setup/setup-logic-apps.sh
 .dev-tools/setup/setup-logic-apps.sh
 ```
 
----
-
-## What Gets Installed
-
-### Git Hooks
-
-1. **commit-msg** - Validates: `TICKET-ID | description`
-2. **pre-commit** - Validates Logic App JSON files
-3. **pre-push** - Validates: `type/TICKET-ID-description`
-
-### Logic Apps Tools (Optional)
-
-1. Azure Functions Core Tools v3
-2. Azurite (local storage emulator)
-3. Node.js verification
-4. .NET Core SDK verification
-
----
-
-## Verification
+### Verification
 ```bash
-# Test commit message
+# Test commit message validation
 git commit --allow-empty -m "TEST-123 | test message"
 # Expected: SUCCESS: Commit message format is valid
 
-# Test branch name
+# Test branch name validation
 git checkout -b feature/TEST-123-test-branch
 # Expected: SUCCESS: Branch name is valid
 ```
 
 ---
 
-## Hooks Behavior
+## Git Hooks Overview
 
-|   Branch    | Hooks Active? |            Reason                    |
-|-------------|---------------|--------------------------------------|
-| dev         |    Yes        | Enforce standards during development |
-| feature/*   |    Yes        | Validate all feature work            |
-| bugfix/*    |    Yes        | Validate all bug fixes               |
-| hotfix/*    |    Yes        | Validate all hotfixes                |
-| refactor/*  |    Yes        | Validate all refactoring             |
-| test/*      |    Yes        | Validate all test changes            |
-| docs/*      |    Yes        | Validate all documentation changes   |
-| **release** |    No         | Don't block release merges           |
-| **main**    |    No         | Don't block production deploys       |
-| **master**  |    No         | Don't block production deploys       |
+### What Gets Installed
+1. **commit-msg** - Validates commit message format
+2. **pre-commit** - Validates Logic App JSON files and runs Checkstyle
+3. **pre-push** - Validates branch naming convention
 
-**Why skip on release/master?**
+### Hooks Behavior
+
+| Branch Type | Hooks Active? | Reason |
+|-------------|---------------|--------|
+| dev         | Yes           | Enforce standards during development |
+| feature/*   | Yes           | Validate all feature work |
+| bugfix/*    | Yes           | Validate all bug fixes |
+| hotfix/*    | Yes           | Validate all hotfixes |
+| refactor/*  | Yes           | Validate all refactoring |
+| test/*      | Yes           | Validate all test changes |
+| docs/*      | Yes           | Validate all documentation changes |
+| **release** | No            | Don't block release merges |
+| **main**    | No            | Don't block production deploys |
+| **master**  | No            | Don't block production deploys |
+
+**Why skip on release/main/master?**
 - These are protected branches for production deployment
 - Hooks running on feature/dev branches already validated the code
 - Avoids blocking critical releases
 
 ---
 
-## What Gets Validated
+## Validation Rules
 
 ### Commit Message Format
 
@@ -101,7 +100,7 @@ TECH-999 | refactor error handling
 **Invalid Examples:**
 ```
 fixed bug                   # Missing ticket ID
-ICOE-34897 fixed stuff      # Missing pipe |
+ICOE-34897 fixed stuff     # Missing pipe |
 added new feature           # Past tense
 update code                 # No ticket ID
 ```
@@ -119,7 +118,7 @@ update code                 # No ticket ID
 
 **Valid Types:**
 - `feature/` - New features
-- `bugfix/` - Bug fixes  (This is for prod bugs since we do not create new branches for dev bugs)
+- `bugfix/` - Bug fixes (for prod bugs since we do not create new branches for dev bugs)
 - `hotfix/` - Critical production fixes
 - `refactor/` - Code refactoring
 - `test/` - Test additions/updates
@@ -169,6 +168,313 @@ When you commit `workflow.json` files, the hooks validate:
   "kind": "Stateful"        // Required: Stateful or Stateless
 }
 ```
+
+---
+
+## Code Quality Checks (Checkstyle)
+
+### What is Checkstyle?
+
+Checkstyle is a code quality tool that validates Java code against coding standards. It runs automatically during commits if you have Java files.
+
+### When Does Checkstyle Run?
+
+**Local Development:**
+```bash
+# Automatically runs when you commit Java files
+git commit -m "ICOE-123 | add new service"
+Running Java code quality checks...
+Running Checkstyle...
+Checkstyle passed
+```
+
+**Manual Run:**
+```bash
+# Check your code manually before committing
+mvn checkstyle:check
+
+# Generate HTML report
+mvn checkstyle:checkstyle
+# View: target/site/checkstyle.html
+```
+
+### What Does Checkstyle Validate?
+
+**Naming Conventions:**
+- Class names (PascalCase)
+- Method names (camelCase)
+- Variable names (camelCase)
+- Constants (UPPER_SNAKE_CASE)
+
+**Code Structure:**
+- Method length (max 150 lines)
+- Parameter count (max 7 parameters)
+- Proper use of braces
+- Import organization
+
+**JavaDoc Requirements:**
+- Public classes must have JavaDoc
+- Public methods must have JavaDoc
+- Include @param, @return, @throws tags
+
+**Code Style:**
+- Whitespace and indentation
+- No star imports (import java.util.*)
+- Unused imports removed
+- Proper modifier order
+
+### Maven Configuration
+
+**Required `pom.xml` setup:**
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <version>3.3.0</version>
+            <configuration>
+                <configLocation>checkstyle.xml</configLocation>
+                <encoding>UTF-8</encoding>
+                <consoleOutput>true</consoleOutput>
+                <failsOnError>true</failsOnError>
+            </configuration>
+            <executions>
+                <execution>
+                    <id>validate</id>
+                    <phase>validate</phase>
+                    <goals>
+                        <goal>check</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
+
+**Plugin Configuration Explained:**
+- `configLocation`: Points to your `checkstyle.xml` file
+- `encoding`: File encoding for proper character handling
+- `consoleOutput`: Shows violations in console
+- `failsOnError`: Fails build on violations
+- `executions`: Binds Checkstyle to Maven lifecycle
+
+**Alternative: Checkstyle as Dependency**
+```xml
+<dependency>
+    <groupId>com.puppycrawl.tools</groupId>
+    <artifactId>checkstyle</artifactId>
+    <version>10.12.0</version>
+</dependency>
+```
+
+### Common Checkstyle Violations and Fixes
+
+#### 1. Missing JavaDoc
+
+**Violation:**
+```java
+public class AccountService {
+    public void processAccount(String accountId) {
+        // ...
+    }
+}
+```
+
+**Fixed:**
+```java
+/**
+ * Service for processing customer accounts.
+ */
+public class AccountService {
+
+    /**
+     * Processes an account by its ID.
+     *
+     * @param accountId the account identifier
+     * @throws IllegalArgumentException if accountId is null
+     */
+    public void processAccount(String accountId) {
+        // ...
+    }
+}
+```
+
+#### 2. Incorrect Naming
+
+**Violation:**
+```java
+public class accountService {  // Should be PascalCase
+    private String Account_Id;  // Should be camelCase
+
+    public void Process_Account() {  // Should be camelCase
+    }
+}
+```
+
+**Fixed:**
+```java
+public class AccountService {
+    private String accountId;
+
+    public void processAccount() {
+    }
+}
+```
+
+#### 3. Star Imports
+
+**Violation:**
+```java
+import java.util.*;
+import com.company.service.*;
+```
+
+**Fixed:**
+```java
+import java.util.List;
+import java.util.ArrayList;
+import com.company.service.AccountService;
+import com.company.service.ValidationService;
+```
+
+#### 4. Method Too Long
+
+**Violation:**
+```java
+public void processAccount() {
+    // 200 lines of code
+    // Checkstyle max is 150 lines
+}
+```
+
+**Fixed:**
+```java
+public void processAccount() {
+    validateAccount();
+    enrichAccountData();
+    saveAccount();
+}
+
+private void validateAccount() {
+    // Validation logic
+}
+
+private void enrichAccountData() {
+    // Enrichment logic
+}
+
+private void saveAccount() {
+    // Save logic
+}
+```
+
+### Skipping Checkstyle (Emergency Only)
+
+**In local commits:**
+```bash
+# Skip all hooks including Checkstyle
+git commit --no-verify -m "HOTFIX-123 | emergency fix"
+```
+
+**In Maven build:**
+```bash
+# Skip Checkstyle in build
+mvn clean package -DskipCheckstyle=true
+```
+
+**Warning:** Use sparingly! CI/CD may still enforce quality checks.
+
+### Configuring Checkstyle Rules
+
+**Location:** `checkstyle.xml` in repository root
+
+**File Structure:**
+```xml
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+    "https://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<module name="Checker">
+    <property name="severity" value="error"/>
+    <property name="fileExtensions" value="java"/>
+
+    <module name="TreeWalker">
+        <!-- Your rules go here -->
+    </module>
+</module>
+```
+
+**Common Rule Categories:**
+
+**Naming Conventions:**
+- `TypeName` - Class names (PascalCase)
+- `MethodName` - Method names (camelCase)
+- `VariableName` - Variable names (camelCase)
+- `ConstantName` - Constants (UPPER_SNAKE_CASE)
+
+**Code Structure:**
+- `MethodLength` - Method length limits
+- `ParameterNumber` - Parameter count limits
+- `AvoidStarImport` - Prevents `import java.util.*`
+
+**JavaDoc Requirements:**
+- `JavadocMethod` - Requires JavaDoc on public methods
+- `JavadocType` - Requires JavaDoc on public classes
+- `JavadocVariable` - Requires JavaDoc on public variables
+
+**Customization Examples:**
+
+**Make rules more lenient:**
+```xml
+<module name="MethodLength">
+    <property name="max" value="200"/>  <!-- Increase from 150 -->
+</module>
+```
+
+**Disable specific checks:**
+```xml
+<module name="JavadocMethod">
+    <!-- Disable JavaDoc requirement -->
+</module>
+```
+
+**Add new rules:**
+```xml
+<module name="LineLength">
+    <property name="max" value="120"/>
+</module>
+```
+
+**Configure existing rules:**
+```xml
+<module name="JavadocMethod">
+    <property name="scope" value="public"/>
+    <property name="allowMissingParamTags" value="false"/>
+    <property name="allowMissingReturnTag" value="false"/>
+</module>
+```
+
+### IDE Integration
+
+**IntelliJ IDEA:**
+1. Install Checkstyle-IDEA plugin
+2. Settings → Tools → Checkstyle
+3. Add configuration file: `checkstyle.xml`
+4. Enable "Scan Scope: All sources"
+
+**Eclipse:**
+1. Install Eclipse Checkstyle Plugin
+2. Preferences → Checkstyle
+3. New → External Configuration File → `checkstyle.xml`
+4. Set as default configuration
+
+**VS Code:**
+1. Install "Checkstyle for Java" extension
+2. Set `java.checkstyle.configuration` to `${workspaceFolder}/checkstyle.xml`
 
 ---
 
@@ -349,6 +655,63 @@ python3 -m json.tool workflow.json
 # - Single quotes instead of double quotes
 ```
 
+### "Build fails with Checkstyle violations"
+
+**Problem:**
+```
+[ERROR] src/main/java/com/company/Service.java:23:
+[ERROR] Missing JavaDoc comment.
+[ERROR] BUILD FAILURE
+```
+
+**Solutions:**
+
+1. **Fix the violations** (Recommended):
+```bash
+# See all violations
+mvn checkstyle:check
+
+# Fix them and commit
+git commit -m "ICOE-123 | fix checkstyle violations"
+```
+
+2. **Make rules less strict:**
+   - Edit `checkstyle.xml`
+   - Increase limits or disable checks
+   - Commit changes
+
+3. **Skip temporarily:**
+```bash
+mvn clean package -DskipCheckstyle=true
+```
+
+### "Checkstyle takes too long"
+
+**Problem:** Build is slow due to Checkstyle
+
+**Solution:** Check only changed files in hooks:
+```bash
+# Git hooks already do this
+# Only staged .java files are checked
+```
+
+### "Different results locally vs Jenkins"
+
+**Problem:** Checkstyle passes locally but fails in Jenkins
+
+**Cause:** Different Checkstyle versions
+
+**Solution:** Version is locked in pom.xml:
+```xml
+<dependency>
+    <groupId>com.puppycrawl.tools</groupId>
+    <artifactId>checkstyle</artifactId>
+    <version>10.12.0</version>
+</dependency>
+```
+
+Both local and Jenkins use same version.
+
 ### Bypassing hooks (Emergency Only)
 
 **Problem:** Need to commit urgently, hooks are blocking
@@ -368,13 +731,16 @@ git push --no-verify
 ---
 
 ## File Structure
+
 ```
 .dev-tools/
 ├── hooks/                          # Validation scripts
 │   ├── common.py                   # Shared utilities
 │   ├── validate_commit_msg.py      # Commit message validator
 │   ├── validate_branch_name.py     # Branch name validator
-│   └── validate_logic_app.py       # Logic App JSON validator
+│   ├── validate_logic_app.py       # Logic App JSON validator
+│   ├── validate_java_code.py       # Java Checkstyle validator
+│   └── validate_csharp_code.py     # C# code validator
 ├── setup/                          # Setup scripts
 │   ├── setup-hooks.sh              # Mac/Linux hook installer
 │   ├── setup-hooks.ps1             # Windows hook installer
@@ -385,6 +751,22 @@ git push --no-verify
 │   └── pre-commit-config.yaml      # Pre-commit framework config
 └── README.md                       # This file
 ```
+
+---
+
+## Files Required for Checkstyle
+
+**Repository root:**
+```
+your-repo/
+├── pom.xml                    # Contains Checkstyle plugin
+├── checkstyle.xml             # Checkstyle rules
+└── .dev-tools/
+    └── hooks/
+        └── validate_java_code.py  # Calls Maven Checkstyle
+```
+
+**All files must be committed to repository.**
 
 ---
 
@@ -424,29 +806,53 @@ To update hooks across all repositories:
 
 ## FAQ
 
-### Q: Do I need to run setup for each repository?
-**A:** Yes, git hooks are local to each repository. Run setup once per repo after cloning.
+**Q: Do I need to install Checkstyle separately?**  
+A: No, Maven downloads it automatically when you build.
 
-### Q: Can I customize the validation rules?
-**A:** No, these are managed by DevOps. If you need changes, contact the DevOps team.
+**Q: Will Checkstyle slow down my commits?**  
+A: Slightly (5-15 seconds), but catches issues before CI/CD.
 
-### Q: What if I don't have a ticket ID?
-**A:** All code changes should have a ticket. For minor fixes without tickets, use:
+**Q: Can I customize the rules?**  
+A: Yes, edit `checkstyle.xml`. Discuss with team first.
+
+**Q: What if I disagree with a rule?**  
+A: Discuss with team lead. Rules can be changed if there's consensus.
+
+**Q: Does Checkstyle check test files?**  
+A: Yes, both `src/main/java` and `src/test/java`.
+
+**Q: Can Checkstyle auto-fix violations?**  
+A: No, but your IDE can help format code. Use IDE's "Reformat Code" feature.
+
+**Q: Is Checkstyle included in production?**  
+A: No, it only runs during build, not in the deployed JAR.
+
+**Q: What if Jenkins build fails due to Checkstyle?**  
+A: Either fix violations or temporarily skip with `-DskipCheckstyle=true`.
+
+**Q: Do I need to run setup for each repository?**
+A: Yes, git hooks are local to each repository. Run setup once per repo after cloning.
+
+**Q: Can I customize the validation rules?**
+A: No, these are managed by DevOps. If you need changes, contact the DevOps team.
+
+**Q: What if I don't have a ticket ID?**
+A: All code changes should have a ticket. For minor fixes without tickets, use:
 - `TECH-XXX` for technical debt
 - `CHORE-XXX` for maintenance tasks
 - Ask your team lead to create a ticket
 
-### Q: Do hooks run on merge commits?
-**A:** Merge commits are automatically skipped. Hooks only validate your direct commits.
+**Q: Do hooks run on merge commits?**
+A: Merge commits are automatically skipped. Hooks only validate your direct commits.
 
-### Q: Will hooks slow down my workflow?
-**A:** No, validation takes < 1 second. It's much faster than waiting for CI/CD to fail!
+**Q: Will hooks slow down my workflow?**
+A: No, validation takes < 1 second. It's much faster than waiting for CI/CD to fail!
 
-### Q: Can I use the designer without installing tools?
-**A:** No, you need Azure Functions Core Tools and Azurite to use the Logic App designer locally in VS Code.
+**Q: Can I use the designer without installing tools?**
+A: No, you need Azure Functions Core Tools and Azurite to use the Logic App designer locally in VS Code.
 
-### Q: What happens if I bypass hooks?
-**A:** Local hooks can be bypassed with `--no-verify`, but the CI/CD pipeline will still validate your code and may block your PR.
+**Q: What happens if I bypass hooks?**
+A: Local hooks can be bypassed with `--no-verify`, but the CI/CD pipeline will still validate your code and may block your PR.
 
 ---
 
@@ -464,6 +870,8 @@ To update hooks across all repositories:
 - **v1.0** - Initial release with commit/branch validation
 - **v1.1** - Added Logic App workflow validation
 - **v1.2** - Added Logic Apps local development tools setup
+- **v1.3** - Added Checkstyle integration for Java projects
+- **v1.4** - Added C# code validation
 
 ---
 
