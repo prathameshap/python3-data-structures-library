@@ -6,6 +6,8 @@
 <module name="Checker">
     <property name="severity" value="error"/>
     <property name="fileExtensions" value="java"/>
+    <property name="outputFile" value="target/checkstyle-results.xml"/>
+    <property name="outputFormat" value="xml"/>
 
     <!-- Checks for whitespace -->
     <module name="FileTabCharacter">

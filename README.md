@@ -618,9 +618,22 @@ All PRs are automatically validated for:
 - Tests pass
 
 **Code Quality Behavior:**
-- **Style violations** (naming, JavaDoc, method length) show as warnings
-- **Critical errors** (syntax, compilation, star imports) block commits
+- **Style violations** (naming, JavaDoc, method length) show as warnings with file:line:column information
+- **Critical errors** (syntax, compilation, star imports) block commits with precise file:line:column location
 - **Commit messages and branch naming** still enforced strictly
+
+### Enhanced Error Reporting
+
+All validation tools now provide detailed file location information:
+
+- **Java Checkstyle**: `src/main/java/Example.java:23:5: Missing JavaDoc comment`
+- **C# Analysis**: `Program.cs:15:8: CS0168 - Variable 'x' is declared but never used`
+- **Logic Apps**: `workflow.json:12: Invalid JSON - Expecting ',' delimiter`
+
+This format enables:
+- **Quick Navigation**: Click errors to jump directly to file locations
+- **IDE Integration**: Compatible with most editors and IDEs
+- **Precise Debugging**: Exact line and column numbers for targeted fixes
 
 Even if you bypass local hooks (`--no-verify`), the Azure DevOps pipeline will still validate!
 
@@ -737,18 +750,20 @@ dotnet --list-sdks
 - Document complex workflows in comments
 
 **Java Specific:**
-- Add JavaDoc for all public classes and methods (shows as warning if missing)
-- Follow naming conventions in Code Standards.docx (shows as warning if incorrect)
+- Add JavaDoc for all public classes and methods (shows as warning with file:line:column if missing)
+- Follow naming conventions in Code Standards.docx (shows as warning with file:line:column if incorrect)
 - Write unit tests for new features (min 80% coverage)
 - Run Checkstyle before committing: `mvn checkstyle:check`
-- **Style violations show as warnings** and don't block commits
-- **Only critical errors** (syntax, compilation, star imports) block commits
+- **Style violations show as warnings** with precise file:line:column information and don't block commits
+- **Only critical errors** (syntax, compilation, star imports) block commits with file:line:column location
 
 **C# Specific:**
-- Add XML documentation comments for public APIs
-- Follow C# coding conventions
+- Add XML documentation comments for public APIs (shows as warning with file:line:column if missing)
+- Follow C# coding conventions (shows as warning with file:line:column if incorrect)
 - Write unit tests for new features
 - Run code analysis: `dotnet build /p:RunAnalyzers=true`
+- **Style violations show as warnings** with precise file:line:column information and don't block commits
+- **Only critical errors** (syntax, compilation) block commits with file:line:column location
 
 **DO NOT DIRECTLY COMMIT TO 'DEV' BRANCH**
 

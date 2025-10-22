@@ -104,6 +104,86 @@ def check_java_syntax():
 
     return True
 
+def parse_checkstyle_xml(xml_file):
+    """Parse Checkstyle XML output to extract file:line:column information."""
+    import xml.etree.ElementTree as ET
+
+    errors = []
+    warnings = []
+
+    try:
+        tree = ET.parse(xml_file)
+        root = tree.getroot()
+
+        for file_elem in root.findall('file'):
+            file_path = file_elem.get('name')
+            # Convert absolute path to relative path
+            if file_path.startswith(os.getcwd()):
+                file_path = os.path.relpath(file_path, os.getcwd())
+
+            for error_elem in file_elem.findall('error'):
+                line = error_elem.get('line')
+                column = error_elem.get('column')
+                severity = error_elem.get('severity')
+                message = error_elem.get('message')
+                source = error_elem.get('source')
+
+                error_info = {
+                    'file': file_path,
+                    'line': line,
+                    'column': column,
+                    'message': message,
+                    'source': source
+                }
+
+                if severity == 'error':
+                    errors.append(error_info)
+                else:
+                    warnings.append(error_info)
+
+    except Exception as e:
+        print_warning(f'Could not parse Checkstyle XML: {e}')
+
+    return errors, warnings
+
+def parse_maven_output(stdout, stderr):
+    """Parse Maven Checkstyle output to extract file:line:column information."""
+    import re
+
+    errors = []
+    warnings = []
+
+    # Pattern to match Maven Checkstyle output
+    # Example: [ERROR] src/main/java/com/example/Test.java:23:5: Missing JavaDoc comment.
+    pattern = r'\[(ERROR|WARNING)\]\s+([^(]+)\((\d+),(\d+)\):\s+(.+)'
+
+    for line in (stdout + stderr).split('\n'):
+        match = re.match(pattern, line.strip())
+        if match:
+            severity = match.group(1).lower()
+            file_path = match.group(2).strip()
+            line = match.group(3)
+            column = match.group(4)
+            message = match.group(5)
+
+            # Convert absolute path to relative path
+            if file_path.startswith(os.getcwd()):
+                file_path = os.path.relpath(file_path, os.getcwd())
+
+            error_info = {
+                'file': file_path,
+                'line': line,
+                'column': column,
+                'message': message
+            }
+
+            if severity == 'error':
+                errors.append(error_info)
+            else:
+                warnings.append(error_info)
+
+    return errors, warnings
+
 def run_checkstyle():
     """Run Maven Checkstyle if available."""
     if not os.path.exists('pom.xml'):
@@ -128,22 +208,19 @@ def run_checkstyle():
 
         # Checkstyle now returns warnings instead of errors for style violations
         if result.returncode != 0:
-            # Parse output to separate errors from warnings
-            output_lines = result.stdout.split('\n') + result.stderr.split('\n')
-            errors = []
-            warnings = []
-
-            for line in output_lines:
-                if '[ERROR]' in line and 'checkstyle' in line.lower():
-                    errors.append(line.strip())
-                elif '[WARNING]' in line and 'checkstyle' in line.lower():
-                    warnings.append(line.strip())
+            # Try to parse Checkstyle XML output first
+            checkstyle_file = 'target/checkstyle-results.xml'
+            if os.path.exists(checkstyle_file):
+                errors, warnings = parse_checkstyle_xml(checkstyle_file)
+            else:
+                # Fallback to parsing Maven output
+                errors, warnings = parse_maven_output(result.stdout, result.stderr)
 
             # Show warnings but don't fail
             if warnings:
                 print_warning(f'Found {len(warnings)} Checkstyle warning(s):')
                 for warning in warnings[:5]:  # Show first 5 warnings
-                    print(f'  {warning}')
+                    print(f'  {warning["file"]}:{warning["line"]}:{warning["column"]}: {warning["message"]}')
                 if len(warnings) > 5:
                     print(f'  ... and {len(warnings) - 5} more warnings')
                 print('\nWarnings do not block commit. Run for details:')
@@ -153,7 +230,7 @@ def run_checkstyle():
             if errors:
                 print_error('Checkstyle found critical errors!')
                 for error in errors[:3]:  # Show first 3 errors
-                    print(f'  {error}')
+                    print(f'  {error["file"]}:{error["line"]}:{error["column"]}: {error["message"]}')
                 print('\nFix the errors above or use: git commit --no-verify\n')
                 return False
 

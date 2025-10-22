@@ -186,9 +186,9 @@ git commit -m "ICOE-123 | add new service"
 Running Java code quality checks...
 Running Checkstyle...
 Found 3 Checkstyle warning(s):
-  WARNING: Missing JavaDoc comment
-  WARNING: Method length is 160 lines (max 150)
-  WARNING: Variable name should be camelCase
+  src/main/java/com/example/Service.java:23:5: Missing JavaDoc comment
+  src/main/java/com/example/Service.java:45:12: Method length is 160 lines (max 150)
+  src/main/java/com/example/Service.java:67:8: Variable name 'user_id' should be camelCase
 Warnings do not block commit. Run for details:
   mvn checkstyle:check
 SUCCESS: Java code quality checks passed with warnings
@@ -207,20 +207,51 @@ mvn checkstyle:checkstyle
 ### Checkstyle Behavior
 
 **Warnings (Don't Block Commits):**
-- Naming convention violations
-- JavaDoc missing
-- Method length violations
-- Style violations
-- Whitespace issues
+- Naming convention violations (shows as `filename:line:column: message`)
+- JavaDoc missing (shows as `filename:line:column: Missing JavaDoc comment`)
+- Method length violations (shows as `filename:line:column: Method length is 150 lines`)
+- Style violations (shows as `filename:line:column: message`)
+- Whitespace issues (shows as `filename:line:column: message`)
 
 **Errors (Block Commits):**
-- Syntax errors
-- Compilation issues
-- Critical code quality issues (star imports, unused imports)
+- Syntax errors (shows as `filename:line:column: Syntax error message`)
+- Compilation issues (shows as `filename:line:column: Compilation error`)
+- Critical code quality issues (star imports, unused imports) (shows as `filename:line:column: message`)
 
 **Commit/Push Failures:**
 - Invalid commit message format
 - Invalid branch naming convention
+
+### Enhanced Error Reporting
+
+All validation tools now provide detailed file location information in a consistent format:
+
+**Java Checkstyle Output:**
+```
+src/main/java/com/example/Service.java:23:5: Missing JavaDoc comment
+src/main/java/com/example/Service.java:45:12: Method length is 160 lines (max 150)
+src/main/java/com/example/Service.java:67:8: Variable name 'user_id' should be camelCase
+```
+
+**C# Analysis Output:**
+```
+Program.cs:15:8: CS0168 - Variable 'x' is declared but never used
+Program.cs:23:12: CS0219 - Variable 'y' is assigned but never used
+Program.cs:45:5: CS1591 - Missing XML comment for publicly visible type
+```
+
+**Logic Apps Validation Output:**
+```
+workflow.json:12: Invalid JSON - Expecting ',' delimiter
+workflow.json:45: Missing required property "triggers"
+connections.json:8: May contain hardcoded credentials
+```
+
+**Benefits:**
+- **Quick Navigation**: Click errors to jump directly to file locations in your IDE
+- **IDE Integration**: Compatible with Visual Studio, VS Code, IntelliJ, and other editors
+- **Precise Debugging**: Exact line and column numbers for targeted fixes
+- **Consistent Format**: Uniform error reporting across all validation types
 
 ### What Does Checkstyle Validate?
 
@@ -859,10 +890,13 @@ A: No, it only runs during build, not in the deployed JAR.
 A: Most violations are now warnings. Only critical errors (syntax, compilation) will fail builds.
 
 **Q: Do style violations block my commits?**  
-A: No, style violations (naming, JavaDoc, method length) now show as warnings and don't block commits.
+A: No, style violations (naming, JavaDoc, method length) now show as warnings with file:line:column information and don't block commits.
 
 **Q: What violations still block commits?**  
-A: Only critical errors like syntax errors, compilation issues, and star imports block commits.
+A: Only critical errors like syntax errors, compilation issues, and star imports block commits. All errors show precise file:line:column location for quick fixing.
+
+**Q: How do I navigate to errors quickly?**  
+A: The new file:line:column format is compatible with most IDEs. You can click on error messages in VS Code, IntelliJ, or Visual Studio to jump directly to the problematic code.
 
 **Q: Do I need to run setup for each repository?**
 A: Yes, git hooks are local to each repository. Run setup once per repo after cloning.

@@ -109,6 +109,45 @@ def run_dotnet_format():
         print_warning(f'Could not run dotnet format: {e}')
         return True
 
+def parse_dotnet_output(stdout, stderr):
+    """Parse dotnet build output to extract file:line information."""
+    import re
+
+    errors = []
+    warnings = []
+
+    # Pattern to match: file.cs(line,col): error/warning CS1234: message
+    pattern = r'([^(]+)\((\d+),(\d+)\):\s+(error|warning)\s+([^:]+):\s+(.+)'
+
+    for line in (stdout + stderr).split('\n'):
+        match = re.match(pattern, line.strip())
+        if match:
+            file_path = match.group(1).strip()
+            line = match.group(2)
+            column = match.group(3)
+            severity = match.group(4)
+            code = match.group(5)
+            message = match.group(6)
+
+            # Convert absolute path to relative path
+            if file_path.startswith(os.getcwd()):
+                file_path = os.path.relpath(file_path, os.getcwd())
+
+            error_info = {
+                'file': file_path,
+                'line': line,
+                'column': column,
+                'code': code,
+                'message': message
+            }
+
+            if severity == 'error':
+                errors.append(error_info)
+            else:
+                warnings.append(error_info)
+
+    return errors, warnings
+
 def run_code_analysis():
     """Run Roslyn code analysis."""
     csproj_files = list(Path('.').rglob('*.csproj'))
@@ -127,11 +166,21 @@ def run_code_analysis():
         )
 
         if result.returncode != 0:
-            if 'warning' in result.stdout.lower() or 'warning' in result.stderr.lower():
-                print_warning('Code analysis warnings found')
+            # Parse dotnet build output for file:line information
+            errors, warnings = parse_dotnet_output(result.stdout, result.stderr)
+
+            if warnings:
+                print_warning('Code analysis warnings found:')
+                for warning in warnings[:5]:  # Show first 5 warnings
+                    print(f'  {warning["file"]}:{warning["line"]}:{warning["column"]}: {warning["code"]} - {warning["message"]}')
+                if len(warnings) > 5:
+                    print(f'  ... and {len(warnings) - 5} more warnings')
                 print('  Run for details: dotnet build /p:RunAnalyzers=true')
-            else:
+
+            if errors:
                 print_error('Code analysis failed!')
+                for error in errors[:3]:  # Show first 3 errors
+                    print(f'  {error["file"]}:{error["line"]}:{error["column"]}: {error["code"]} - {error["message"]}')
                 print('  Run for details: dotnet build')
                 return False
         else:
