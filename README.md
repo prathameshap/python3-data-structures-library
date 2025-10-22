@@ -352,7 +352,8 @@ This project uses automated code quality checks to maintain consistency and best
 **For Java Projects:**
 - Runs automatically on every commit
 - Validates code against team standards
-- Enforces JavaDoc, naming conventions, code structure
+- **Style violations show as warnings** (don't block commits)
+- **Only critical errors block commits** (syntax, compilation issues)
 - Provides immediate feedback
 
 **Quick Check:**
@@ -365,11 +366,16 @@ mvn checkstyle:checkstyle
 # View: target/site/checkstyle.html
 ```
 
-**Common Issues:**
+**Warnings (Don't Block Commits):**
 - Missing JavaDoc on public methods
 - Incorrect naming conventions
-- Star imports (import java.util.*)
 - Method too long (>150 lines)
+- Style violations
+
+**Errors (Block Commits):**
+- Star imports (import java.util.*)
+- Syntax errors
+- Compilation issues
 
 **See:** [Code Standards.docx](Code%20Standards.docx) for detailed standards
 
@@ -610,8 +616,11 @@ All PRs are automatically validated for:
 - Workflow validation (Logic Apps)
 - Build succeeds
 - Tests pass
-- Code quality checks (Checkstyle for Java, StyleCop for C#)
-- Workflow JSON validation (Logic Apps)
+
+**Code Quality Behavior:**
+- **Style violations** (naming, JavaDoc, method length) show as warnings
+- **Critical errors** (syntax, compilation, star imports) block commits
+- **Commit messages and branch naming** still enforced strictly
 
 Even if you bypass local hooks (`--no-verify`), the Azure DevOps pipeline will still validate!
 
@@ -728,10 +737,12 @@ dotnet --list-sdks
 - Document complex workflows in comments
 
 **Java Specific:**
-- Add JavaDoc for all public classes and methods
-- Follow naming conventions in Code Standards.docx
+- Add JavaDoc for all public classes and methods (shows as warning if missing)
+- Follow naming conventions in Code Standards.docx (shows as warning if incorrect)
 - Write unit tests for new features (min 80% coverage)
 - Run Checkstyle before committing: `mvn checkstyle:check`
+- **Style violations show as warnings** and don't block commits
+- **Only critical errors** (syntax, compilation, star imports) block commits
 
 **C# Specific:**
 - Add XML documentation comments for public APIs

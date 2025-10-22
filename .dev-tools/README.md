@@ -185,7 +185,13 @@ Checkstyle is a code quality tool that validates Java code against coding standa
 git commit -m "ICOE-123 | add new service"
 Running Java code quality checks...
 Running Checkstyle...
-Checkstyle passed
+Found 3 Checkstyle warning(s):
+  WARNING: Missing JavaDoc comment
+  WARNING: Method length is 160 lines (max 150)
+  WARNING: Variable name should be camelCase
+Warnings do not block commit. Run for details:
+  mvn checkstyle:check
+SUCCESS: Java code quality checks passed with warnings
 ```
 
 **Manual Run:**
@@ -198,30 +204,52 @@ mvn checkstyle:checkstyle
 # View: target/site/checkstyle.html
 ```
 
+### Checkstyle Behavior
+
+**Warnings (Don't Block Commits):**
+- Naming convention violations
+- JavaDoc missing
+- Method length violations
+- Style violations
+- Whitespace issues
+
+**Errors (Block Commits):**
+- Syntax errors
+- Compilation issues
+- Critical code quality issues (star imports, unused imports)
+
+**Commit/Push Failures:**
+- Invalid commit message format
+- Invalid branch naming convention
+
 ### What Does Checkstyle Validate?
 
-**Naming Conventions:**
+**Naming Conventions (Warnings):**
 - Class names (PascalCase)
 - Method names (camelCase)
 - Variable names (camelCase)
 - Constants (UPPER_SNAKE_CASE)
 
-**Code Structure:**
+**Code Structure (Warnings):**
 - Method length (max 150 lines)
 - Parameter count (max 7 parameters)
 - Proper use of braces
 - Import organization
 
-**JavaDoc Requirements:**
+**JavaDoc Requirements (Warnings):**
 - Public classes must have JavaDoc
 - Public methods must have JavaDoc
 - Include @param, @return, @throws tags
 
-**Code Style:**
+**Code Style (Warnings):**
 - Whitespace and indentation
-- No star imports (import java.util.*)
-- Unused imports removed
 - Proper modifier order
+
+**Critical Issues (Errors - Block Commits):**
+- No star imports (import java.util.*)
+- Unused imports
+- Syntax errors
+- Compilation issues
 
 ### Maven Configuration
 
@@ -810,7 +838,7 @@ To update hooks across all repositories:
 A: No, Maven downloads it automatically when you build.
 
 **Q: Will Checkstyle slow down my commits?**  
-A: Slightly (5-15 seconds), but catches issues before CI/CD.
+A: Slightly (5-15 seconds), but most violations are now warnings that don't block commits.
 
 **Q: Can I customize the rules?**  
 A: Yes, edit `checkstyle.xml`. Discuss with team first.
@@ -828,7 +856,13 @@ A: No, but your IDE can help format code. Use IDE's "Reformat Code" feature.
 A: No, it only runs during build, not in the deployed JAR.
 
 **Q: What if Jenkins build fails due to Checkstyle?**  
-A: Either fix violations or temporarily skip with `-DskipCheckstyle=true`.
+A: Most violations are now warnings. Only critical errors (syntax, compilation) will fail builds.
+
+**Q: Do style violations block my commits?**  
+A: No, style violations (naming, JavaDoc, method length) now show as warnings and don't block commits.
+
+**Q: What violations still block commits?**  
+A: Only critical errors like syntax errors, compilation issues, and star imports block commits.
 
 **Q: Do I need to run setup for each repository?**
 A: Yes, git hooks are local to each repository. Run setup once per repo after cloning.
@@ -846,7 +880,7 @@ A: All code changes should have a ticket. For minor fixes without tickets, use:
 A: Merge commits are automatically skipped. Hooks only validate your direct commits.
 
 **Q: Will hooks slow down my workflow?**
-A: No, validation takes < 1 second. It's much faster than waiting for CI/CD to fail!
+A: No, validation takes < 1 second. Style violations show as warnings and don't block commits, making development faster!
 
 **Q: Can I use the designer without installing tools?**
 A: No, you need Azure Functions Core Tools and Azurite to use the Logic App designer locally in VS Code.

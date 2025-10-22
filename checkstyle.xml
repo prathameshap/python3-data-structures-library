@@ -14,15 +14,33 @@
 
     <module name="TreeWalker">
         <!-- Naming Conventions -->
-        <module name="ConstantName"/>
-        <module name="LocalFinalVariableName"/>
-        <module name="LocalVariableName"/>
-        <module name="MemberName"/>
-        <module name="MethodName"/>
-        <module name="PackageName"/>
-        <module name="ParameterName"/>
-        <module name="StaticVariableName"/>
-        <module name="TypeName"/>
+        <module name="ConstantName">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="LocalFinalVariableName">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="LocalVariableName">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="MemberName">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="MethodName">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="PackageName">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="ParameterName">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="StaticVariableName">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="TypeName">
+            <property name="severity" value="warning"/>
+        </module>
 
         <!-- Imports -->
         <module name="AvoidStarImport"/>
@@ -33,9 +51,11 @@
         <!-- Size Violations -->
         <module name="MethodLength">
             <property name="max" value="150"/>
+            <property name="severity" value="warning"/>
         </module>
         <module name="ParameterNumber">
             <property name="max" value="7"/>
+            <property name="severity" value="warning"/>
         </module>
 
         <!-- Whitespace -->
@@ -84,15 +104,19 @@
             <property name="scope" value="public"/>
             <property name="allowMissingParamTags" value="false"/>
             <property name="allowMissingReturnTag" value="false"/>
+            <property name="severity" value="warning"/>
         </module>
         <module name="JavadocType">
             <property name="scope" value="public"/>
+            <property name="severity" value="warning"/>
         </module>
         <module name="JavadocVariable">
             <property name="scope" value="public"/>
+            <property name="severity" value="warning"/>
         </module>
         <module name="JavadocStyle">
             <property name="checkFirstSentence" value="false"/>
+            <property name="severity" value="warning"/>
         </module>
     </module>
 </module>

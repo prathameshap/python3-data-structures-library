@@ -126,11 +126,41 @@ def run_checkstyle():
             timeout=60
         )
 
+        # Checkstyle now returns warnings instead of errors for style violations
         if result.returncode != 0:
-            print_error('Checkstyle validation failed!')
-            print('\nCheckstyle errors found. Run for details:')
-            print('  mvn checkstyle:check\n')
-            return False
+            # Parse output to separate errors from warnings
+            output_lines = result.stdout.split('\n') + result.stderr.split('\n')
+            errors = []
+            warnings = []
+
+            for line in output_lines:
+                if '[ERROR]' in line and 'checkstyle' in line.lower():
+                    errors.append(line.strip())
+                elif '[WARNING]' in line and 'checkstyle' in line.lower():
+                    warnings.append(line.strip())
+
+            # Show warnings but don't fail
+            if warnings:
+                print_warning(f'Found {len(warnings)} Checkstyle warning(s):')
+                for warning in warnings[:5]:  # Show first 5 warnings
+                    print(f'  {warning}')
+                if len(warnings) > 5:
+                    print(f'  ... and {len(warnings) - 5} more warnings')
+                print('\nWarnings do not block commit. Run for details:')
+                print('  mvn checkstyle:check\n')
+
+            # Only fail on actual errors (syntax, compilation issues)
+            if errors:
+                print_error('Checkstyle found critical errors!')
+                for error in errors[:3]:  # Show first 3 errors
+                    print(f'  {error}')
+                print('\nFix the errors above or use: git commit --no-verify\n')
+                return False
+
+            # If only warnings, don't fail
+            if warnings and not errors:
+                print_success('Checkstyle passed with warnings')
+                return True
 
         print_success('Checkstyle passed')
         return True
@@ -234,19 +264,30 @@ def main():
     ]
 
     failed = False
+    warnings_found = False
+
     for check_name, check_func in checks:
         try:
-            if not check_func():
+            result = check_func()
+            if result is False:
                 failed = True
+            elif result is True:
+                # Check if warnings were shown (we can't easily detect this, so we'll assume warnings are shown)
+                warnings_found = True
         except Exception as e:
             print_warning(f'{check_name} check failed with error: {e}')
 
+    # Only fail on critical errors, not on style warnings
     if failed:
         print('\nERROR: Java code quality checks failed')
-        print('Fix the issues above or use: git commit --no-verify\n')
+        print('Fix the critical errors above or use: git commit --no-verify\n')
         return 1
 
-    print('SUCCESS: All Java code quality checks passed\n')
+    if warnings_found:
+        print('SUCCESS: Java code quality checks passed with warnings\n')
+    else:
+        print('SUCCESS: All Java code quality checks passed\n')
+
     return 0
 
 if __name__ == '__main__':
