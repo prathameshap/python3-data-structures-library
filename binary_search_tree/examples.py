@@ -2,10 +2,6 @@
 """
 Comprehensive Binary Search Tree Examples and Demonstrations
 """
-
-#this is the push test
-
-
 # Author Name: Prathamesh Pawar
 # Email: prathameshpawar1301@gmail.com
 
